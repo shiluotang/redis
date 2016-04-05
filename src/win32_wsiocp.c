@@ -31,6 +31,27 @@
 #endif
 #include "win32_wsiocp.h"
 
+#ifdef __CYGWIN__
+#elif defined(__MINGW32__)
+#   include <_mingw.h>
+#   if defined(__MINGW64__)
+#       //pragma message("This is MinGW64 x86_64 GCC compiler")
+#   elif defined(__MINGW32__)
+#       ifdef __MINGW64_VERSION_MAJOR
+#           //pragma message("This is MinGW64 i686 GCC compiler")
+#       else
+#           //pragma message("This is MinGW32 GCC compiler")
+#           define WSAID_CONNECTEX {0x25a207b9,0xddf3,0x4660,{0x8e,0xe9,0x76,0xe5,0x8c,0x74,0x06,0x3e}}
+            typedef WINBOOL (WINAPI *LPFN_CONNECTEX)(SOCKET s,const struct sockaddr *name,int namelen,PVOID lpSendBuffer,DWORD dwSendDataLength,LPDWORD lpdwBytesSent,LPOVERLAPPED lpOverlapped);
+#           define WSAID_GETACCEPTEXSOCKADDRS {0xb5367df2,0xcbac,0x11cf,{0x95,0xca,0x00,0x80,0x5f,0x48,0xa1,0x92}}
+            typedef VOID (WINAPI *LPFN_GETACCEPTEXSOCKADDRS)(PVOID lpOutputBuffer,DWORD dwReceiveDataLength,DWORD dwLocalAddressLength,DWORD dwRemoteAddressLength,struct sockaddr **LocalSockaddr,LPINT LocalSockaddrLength,struct sockaddr **RemoteSockaddr,LPINT RemoteSockaddrLength);
+#           define WSAID_ACCEPTEX {0xb5367df1,0xcbac,0x11cf,{0x95,0xca,0x00,0x80,0x5f,0x48,0xa1,0x92}}
+            typedef WINBOOL (WINAPI *LPFN_ACCEPTEX)(SOCKET sListenSocket,SOCKET sAcceptSocket,PVOID lpOutputBuffer,DWORD dwReceiveDataLength,DWORD dwLocalAddressLength,DWORD dwRemoteAddressLength,LPDWORD lpdwBytesReceived,LPOVERLAPPED lpOverlapped);
+#       endif
+#   endif
+#endif
+
+
 
 static void *iocpState;
 static HANDLE iocph;

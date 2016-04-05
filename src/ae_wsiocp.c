@@ -34,6 +34,27 @@
 #   include <Guiddef.h>
 #endif
 
+#ifdef __CYGWIN__
+#elif defined(__MINGW32__)
+#   include <_mingw.h>
+#   if defined(__MINGW64__)
+#       //pragma message("This is MinGW64 x86_64 GCC compiler")
+#   elif defined(__MINGW32__)
+#       ifdef __MINGW64_VERSION_MAJOR
+#           //pragma message("This is MinGW64 i686 GCC compiler")
+#       else
+#           //pragma message("This is MinGW32 GCC compiler")
+            typedef struct _OVERLAPPED_ENTRY {
+                ULONG_PTR lpCompletionKey;
+                LPOVERLAPPED lpOverlapped;
+                ULONG_PTR Internal;
+                DWORD dwNumberOfBytesTransferred;
+            } OVERLAPPED_ENTRY, *LPOVERLAPPED_ENTRY;
+#       endif
+#   endif
+#endif
+
+
 /* Note: On Win64 a SOCKET is 64 bits, but an int is 32 bits.
  *       Redis typically uses int where a SOCKET would be used.
  *       It is safe to cast between SOCKET and int because a
