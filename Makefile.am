@@ -19,3 +19,5 @@ libhiredis_la_SOURCES = \
 					   ./src/ae.c \
 					   ./src/util.c
 libhiredis_la_LDFLAGS = $(AM_LDFLAGS) -lws2_32
+
+SUBDIRS = deps/hiredis

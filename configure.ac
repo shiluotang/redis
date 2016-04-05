@@ -57,5 +57,6 @@ AC_FUNC_STRTOD
 AC_FUNC_WAIT3
 AC_CHECK_FUNCS([atexit dup2 floor ftruncate getcwd gethostbyname gettimeofday inet_ntoa localeconv memchr memmove memset modf munmap pow select setlocale socket sqrt strcasecmp strchr strcspn strdup strerror strncasecmp strpbrk strrchr strstr strtol strtoul strtoull uname])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+                 deps/hiredis/Makefile])
 AC_OUTPUT
