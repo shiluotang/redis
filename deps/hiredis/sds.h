@@ -35,8 +35,12 @@
 #include <stdarg.h>
 
 #ifdef _WIN32
-  #define inline __inline
-  #define va_copy(d,s) d = (s)
+#   define inline __inline
+#   if defined(__MINGW32__) || (__MINGW64__) 
+#       ifndef va_copy
+#           define va_copy(d,s) d = (s)
+#       endif
+#   endif
 #endif
 
 typedef char *sds;

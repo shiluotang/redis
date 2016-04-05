@@ -25,7 +25,10 @@
 #include "adlist.h"
 #include "zmalloc.h"
 #include <mswsock.h>
-#include <Guiddef.h>
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#else
+#   include <Guiddef.h>
+#endif
 #include "win32_wsiocp.h"
 
 

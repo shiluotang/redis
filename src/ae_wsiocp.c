@@ -29,7 +29,10 @@
 #include "adlist.h"
 #include "win32_wsiocp.h"
 #include <mswsock.h>
-#include <Guiddef.h>
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#else
+#   include <Guiddef.h>
+#endif
 
 /* Note: On Win64 a SOCKET is 64 bits, but an int is 32 bits.
  *       Redis typically uses int where a SOCKET would be used.
@@ -389,7 +392,8 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
                         }
                     }
                     if (matched == 0) {
-                        /* redisLog */printf("Sec:%lld Unknown complete (closed) on %d\n", gettimeofdaysecs(NULL), sock);
+                        /* redisLog */
+                        printf("Sec:%lld Unknown complete (closed) on %d\n", gettimeofdaysecs(NULL), sock);
                         sockstate = NULL;
                     }
                 }

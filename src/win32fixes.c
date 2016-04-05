@@ -6,16 +6,25 @@
 *  - modified rename to retry after failure
 */
 
-#ifdef _WIN32
-
-#include <process.h>
-#include <stdlib.h>
-#include <errno.h>
-#ifndef FD_SETSIZE
-#define FD_SETSIZE 16000
+#if defined(__MINGW32__) || (__MINGW64__)
+#   include <_mingw.h>
+#   ifndef _WIN32_WINNT
+#       define _WIN32_WINNT 0x501
+#   endif
 #endif
-#include <winsock2.h>
-#include <windows.h>
+
+#ifdef _WIN32
+#   include <process.h>
+#   include <stdlib.h>
+#   include <errno.h>
+#   ifndef FD_SETSIZE
+#       define FD_SETSIZE 16000
+#   endif
+#   include <winsock2.h>
+#   include <windows.h>
+#   ifndef STACK_SIZE_PARAM_IS_A_RESERVATION
+#       define STACK_SIZE_PARAM_IS_A_RESERVATION 0x10000
+#   endif
 #include <signal.h>
 #include <time.h>
 #include <locale.h>
@@ -226,22 +235,22 @@ pthread_t pthread_self(void) {
     return GetCurrentThreadId();
 }
 
-int pthread_sigmask(int how, const sigset_t *set, sigset_t *oset) {
-    REDIS_NOTUSED(set);
-    REDIS_NOTUSED(oset);
-    switch (how) {
-      case SIG_BLOCK:
-      case SIG_UNBLOCK:
-      case SIG_SETMASK:
-           break;
-      default:
-            errno = EINVAL;
-            return -1;
-    }
-
-  errno = ENOSYS;
-  return 0;
-}
+//int pthread_sigmask(int how, const sigset_t *set, sigset_t *oset) {
+//    REDIS_NOTUSED(set);
+//    REDIS_NOTUSED(oset);
+//    switch (how) {
+//      case SIG_BLOCK:
+//      case SIG_UNBLOCK:
+//      case SIG_SETMASK:
+//           break;
+//      default:
+//            errno = EINVAL;
+//            return -1;
+//    }
+//
+//  errno = ENOSYS;
+//  return 0;
+//}
 
 int win32_pthread_join(pthread_t *thread, void **value_ptr)  {
     int result;
@@ -426,13 +435,27 @@ int getrusage(int who, struct rusage * r) {
     return 0;
 }
 
-#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
-
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#   ifndef DELTA_EPOCH_IN_MICROSECS
+#       ifdef HAVE_CONFIG_H
+#           ifdef HAVE_STDINT_H
+#               include <stdint.h>
+#               define DELTA_EPOCH_IN_MICROSECS ((uint64_t) 11644473600000000UL)
+#           else
+#               define DELTA_EPOCH_IN_MICROSECS 11644473600000000ULL
+#           endif
+#       else
+#           define DELTA_EPOCH_IN_MICROSECS 11644473600000000ULL
+#       endif
+#   endif
+#else
+#   define DELTA_EPOCH_IN_MICROSECS 11644473600000000Ui64
 struct timezone
 {
   int  tz_minuteswest; /* minutes W of Greenwich */
   int  tz_dsttime;     /* type of dst correction */
 };
+#endif
 
 time_t gettimeofdaysecs(unsigned int *usec)
 {
@@ -452,6 +475,8 @@ time_t gettimeofdaysecs(unsigned int *usec)
     return (tmpres / 1000000UL);
 }
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#else
 int gettimeofday(struct timeval *tv, struct timezone *tz)
 {
   FILETIME ft;
@@ -486,49 +511,50 @@ int gettimeofday(struct timeval *tv, struct timezone *tz)
 
   return 0;
 }
+#endif
 
-static _locale_t clocale = NULL;
-double wstrtod(const char *nptr, char **eptr) {
-    double d;
-    char *leptr;
-    if (clocale == NULL)
-        clocale = _create_locale(LC_ALL, "C");
-    d = _strtod_l(nptr, &leptr, clocale);
-    /* if 0, check if input was inf */
-    if (d == 0 && nptr == leptr) {
-        int neg = 0;
-        while (isspace(*nptr))
-            nptr++;
-        if (*nptr == '+')
-            nptr++;
-        else if (*nptr == '-') {
-            nptr++;
-            neg = 1;
-        }
-
-        if (strnicmp("INF", nptr, 3) == 0) {
-            if (eptr != NULL) {
-                if (strnicmp("INFINITE", nptr, 8) == 0)
-                    *eptr = (char*)(nptr + 8);
-                else
-                    *eptr = (char*)(nptr + 3);
-            }
-            if (neg == 1)
-                return -HUGE_VAL;
-            else
-                return HUGE_VAL;
-        } else if (strnicmp("NAN", nptr, 3) == 0) {
-            if (eptr != NULL)
-                *eptr = (char*)(nptr + 3);
-            /* create a NaN : 0 * infinity*/
-            d = HUGE_VAL;
-            return d * 0;
-        }
-    }
-    if (eptr != NULL)
-        *eptr = leptr;
-    return d;
-}
+// static _locale_t clocale = NULL;
+// double wstrtod(const char *nptr, char **eptr) {
+//     double d;
+//     char *leptr;
+//     if (clocale == NULL)
+//         clocale = _create_locale(LC_ALL, "C");
+//     d = _strtod_l(nptr, &leptr, clocale);
+//     /* if 0, check if input was inf */
+//     if (d == 0 && nptr == leptr) {
+//         int neg = 0;
+//         while (isspace(*nptr))
+//             nptr++;
+//         if (*nptr == '+')
+//             nptr++;
+//         else if (*nptr == '-') {
+//             nptr++;
+//             neg = 1;
+//         }
+// 
+//         if (strnicmp("INF", nptr, 3) == 0) {
+//             if (eptr != NULL) {
+//                 if (strnicmp("INFINITE", nptr, 8) == 0)
+//                     *eptr = (char*)(nptr + 8);
+//                 else
+//                     *eptr = (char*)(nptr + 3);
+//             }
+//             if (neg == 1)
+//                 return -HUGE_VAL;
+//             else
+//                 return HUGE_VAL;
+//         } else if (strnicmp("NAN", nptr, 3) == 0) {
+//             if (eptr != NULL)
+//                 *eptr = (char*)(nptr + 3);
+//             /* create a NaN : 0 * infinity*/
+//             d = HUGE_VAL;
+//             return d * 0;
+//         }
+//     }
+//     if (eptr != NULL)
+//         *eptr = leptr;
+//     return d;
+// }
 
 int strerror_r(int err, char* buf, size_t buflen) {
     int size = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |

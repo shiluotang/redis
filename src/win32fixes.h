@@ -36,6 +36,13 @@
 #include <limits.h>  /* INT_MAX */
 #include <process.h>
 #include <sys/types.h>
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#   include <sys/time.h>
+#   include <sys/types.h>
+#   ifdef _SIGSET_T_
+typedef _sigset_t sigset_t;
+#   endif
+#endif
 
 #define fseeko fseeko64
 #define ftello ftello64
@@ -56,9 +63,11 @@ int replace_ftruncate(int fd, long long length);
 #define fseeko64 _fseeki64
 #define strcasecmp _stricmp
 #define strtoll _strtoi64
-#define isnan _isnan
-#define isfinite _finite
-#define isinf(x) (!_finite(x))
+#if !defined(__MINGW32__) && !defined(__MINGW64__)
+#   define isnan _isnan
+#   define isfinite _finite
+#   define isinf(x) (!_finite(x))
+#endif
 #define lseek64 _lseeki64
 /* following defined to choose little endian byte order */
 #define __i386__ 1
@@ -79,7 +88,9 @@ RtlGenRandomFunc RtlGenRandom;
 int replace_random();
 
 #if !defined(ssize_t)
+#   if  !defined(_SSIZE_T_) && !defined(_SSIZE_T_DEFINED)
 typedef int ssize_t;
+#   endif
 #endif
 
 #if !defined(mode_t)
@@ -154,9 +165,11 @@ int getrusage(int who, struct rusage * rusage);
 #define SIGTTIN 21
 #define SIGTTOU 22
 #define SIGABRT 22
-/* #define SIGSTOP	24 /*Pause the process; cannot be trapped*/
-/* #define SIGTSTP	25 /*Terminal stop	Pause the process; can be trapped*/
-/* #define SIGCONT	26 */
+// Pause the process; cannot be trapped
+// #define SIGSTOP	24
+//Terminal stop	Pause the process; can be trapped
+// #define SIGTSTP	25
+// #define SIGCONT	26
 #define SIGWINCH 28
 #define SIGUSR1  30
 #define SIGUSR2  31
@@ -187,7 +200,9 @@ int getrusage(int who, struct rusage * rusage);
 #endif /*SIG_SETMASK*/
 
 typedef	void (*__p_sig_fn_t)(int);
+#ifndef _PID_T_
 typedef int pid_t;
+#endif
 
 #ifndef _SIGSET_T_
 #define _SIGSET_T_
@@ -267,7 +282,7 @@ int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
 int pthread_cond_signal(pthread_cond_t *cond);
 
 int pthread_detach (pthread_t thread);
-int pthread_sigmask(int how, const sigset_t *set, sigset_t *oldset);
+//int pthread_sigmask(int how, const sigset_t *set, sigset_t *oldset);
 
 /* Misc Unix -> Win32 */
 int kill(pid_t pid, int sig);
@@ -282,7 +297,10 @@ void *mmap(void *start, size_t length, int prot, int flags, int fd, off offset);
 int munmap(void *start, size_t length);
 
 int fork(void);
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#else
 int gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif
 time_t gettimeofdaysecs(unsigned int *usec);
 
 /* strtod does not handle Inf and Nan
