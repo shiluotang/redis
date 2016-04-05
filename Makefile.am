@@ -15,8 +15,7 @@ libhiredis_la_SOURCES = \
 					   ./src/adlist.c \
 					   ./src/zmalloc.c \
 					   ./src/win32fixes.c \
-					   ./src/ae_wsiocp.c \
 					   ./src/win32_wsiocp.c \
-					   ./src/util.c \
-					   ./src/ae.c
+					   ./src/ae.c \
+					   ./src/util.c
 libhiredis_la_LDFLAGS = $(AM_LDFLAGS) -lws2_32
