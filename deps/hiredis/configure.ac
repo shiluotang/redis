@@ -1,13 +1,13 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.69])
-AC_INIT([redis], [2.6], [shengquangang2015@163.com])
+AC_PREREQ([2.63])
+AC_INIT([hiredis], [2.6], [shengquangang2015@163.com])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_CONFIG_SRCDIR([deps/hiredis/hiredis.h])
+AC_CONFIG_SRCDIR([hiredis.h])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects])
@@ -57,6 +57,5 @@ AC_FUNC_STRTOD
 AC_FUNC_WAIT3
 AC_CHECK_FUNCS([atexit dup2 floor ftruncate getcwd gethostbyname gettimeofday inet_ntoa localeconv memchr memmove memset modf munmap pow select setlocale socket sqrt strcasecmp strchr strcspn strdup strerror strncasecmp strpbrk strrchr strstr strtol strtoul strtoull uname])
 
-AC_CONFIG_FILES([Makefile
-                 deps/hiredis/Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
