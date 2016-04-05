@@ -39,7 +39,7 @@
 #if defined(__linux__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #define _XOPEN_SOURCE 700
 #elif defined(__CYGWIN__)
-#   pragma message("This is CYGWIN GCC compiler")
+#   //pragma message("This is CYGWIN GCC compiler")
 #elif defined(__MINGW32__)
 #   include <_mingw.h>
 #   if defined(__MINGW64__)

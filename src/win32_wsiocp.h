@@ -23,7 +23,7 @@
 #ifndef WIN32WSIOCP_H
 #define WIN32WSIOCP_H
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 /* structs and functions for using IOCP with windows sockets */
 
 /* structure used for async write requests.

@@ -6,14 +6,14 @@
 *  - modified rename to retry after failure
 */
 
-#if defined(__MINGW32__) || (__MINGW64__)
+#if defined(__MINGW32__)
 #   include <_mingw.h>
 #   ifndef _WIN32_WINNT
 #       define _WIN32_WINNT 0x501
 #   endif
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #   include <process.h>
 #   include <stdlib.h>
 #   include <errno.h>
@@ -435,7 +435,7 @@ int getrusage(int who, struct rusage * r) {
     return 0;
 }
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
+#if defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
 #   ifndef DELTA_EPOCH_IN_MICROSECS
 #       ifdef HAVE_CONFIG_H
 #           ifdef HAVE_STDINT_H

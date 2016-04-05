@@ -14,7 +14,7 @@
 #endif
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 #define WIN32_LEAN_AND_MEAN
 #define NOGDI
 #define __USE_W32_SOCKETS
@@ -63,7 +63,7 @@ int replace_ftruncate(int fd, long long length);
 #define fseeko64 _fseeki64
 #define strcasecmp _stricmp
 #define strtoll _strtoi64
-#if !defined(__MINGW32__) && !defined(__MINGW64__)
+#if !defined(__MINGW32__) && !defined(__MINGW64__) && !defined(__CYGWIN__)
 #   define isnan _isnan
 #   define isfinite _finite
 #   define isinf(x) (!_finite(x))
@@ -115,12 +115,15 @@ typedef unsigned __int32 u_int32_t;
 #define waitpid(pid,statusp,options) _cwait (statusp, pid, WAIT_CHILD)
 
 #define WAIT_T int
+#ifdef __CYGWIN__
+#else
 #define WTERMSIG(x) ((x) & 0xff) /* or: SIGABRT ?? */
 #define WCOREDUMP(x) 0
 #define WEXITSTATUS(x) (((x) >> 8) & 0xff) /* or: (x) ?? */
 #define WIFSIGNALED(x) (WTERMSIG (x) != 0) /* or: ((x) == 3) ?? */
 #define WIFEXITED(x) (WTERMSIG (x) == 0) /* or: ((x) != 3) ?? */
 #define WIFSTOPPED(x) 0
+#endif
 
 #define WNOHANG 1
 
@@ -153,7 +156,9 @@ int getrusage(int who, struct rusage * rusage);
 #define SIGINT	 2 /* Interrupt	Terminate; can be trapped */
 #define SIGQUIT	 3 /* Quit	Terminate with core dump; can be trapped */
 #define SIGTRAP  5
+#ifndef __CYGWIN__
 #define SIGBUS   7
+#endif
 #define SIGKILL	 9 /* Kill	Forced termination; cannot be trapped */
 #define SIGPIPE 13
 #define SIGALRM 14
@@ -164,7 +169,9 @@ int getrusage(int who, struct rusage * rusage);
 #define SIGCHLD 20
 #define SIGTTIN 21
 #define SIGTTOU 22
+#ifndef __CYGWIN__
 #define SIGABRT 22
+#endif
 // Pause the process; cannot be trapped
 // #define SIGSTOP	24
 //Terminal stop	Pause the process; can be trapped
@@ -176,13 +183,17 @@ int getrusage(int who, struct rusage * rusage);
 
 #define ucontext_t void*
 
+#ifndef __CYGWIN__
 #define SA_NOCLDSTOP    0x00000001u
+#endif
 #define SA_NOCLDWAIT    0x00000002u
+#ifndef __CYGWIN__
 #define SA_SIGINFO      0x00000004u
 #define SA_ONSTACK      0x08000000u
 #define SA_RESTART      0x10000000u
 #define SA_NODEFER      0x40000000u
 #define SA_RESETHAND    0x80000000u
+#endif
 #define SA_NOMASK       SA_NODEFER
 #define SA_ONESHOT      SA_RESETHAND
 #define SA_RESTORER     0x04000000
@@ -214,6 +225,7 @@ typedef unsigned long _sigset_t;
 # define sigset_t _sigset_t
 #endif /* _SIGSET_T_ */
 
+#ifndef __CYGWIN__
 struct sigaction {
     int          sa_flags;
     sigset_t     sa_mask;
@@ -222,6 +234,8 @@ struct sigaction {
 };
 
 int sigaction(int sig, struct sigaction *in, struct sigaction *out);
+#endif
+
 
 /* Sockets */
 
@@ -237,7 +251,9 @@ int sigaction(int sig, struct sigaction *in, struct sigaction *out);
 #define ETIMEDOUT WSAETIMEDOUT
 #endif
 
+#ifndef __CYGWIN__
 #define setsockopt(a,b,c,d,e) replace_setsockopt(a,b,c,d,e)
+#endif
 
 int replace_setsockopt(int socket, int level, int optname,
                      const void *optval, socklen_t optlen);
@@ -268,6 +284,7 @@ int pthread_create(pthread_t *thread, const void *unused,
 
 pthread_t pthread_self(void);
 
+#ifndef __CYGWIN__
 typedef struct {
     CRITICAL_SECTION waiters_lock;
     LONG waiters;
@@ -275,6 +292,7 @@ typedef struct {
     HANDLE sema;
     HANDLE continue_broadcast;
 } pthread_cond_t;
+#endif
 
 int pthread_cond_init(pthread_cond_t *cond, const void *unused);
 int pthread_cond_destroy(pthread_cond_t *cond);
@@ -293,11 +311,13 @@ int w32initWinSock(void);
 /* int inet_aton(const char *cp_arg, struct in_addr *addr) */
 
 /* redis-check-dump  */
+#ifndef __CYGWIN__
 void *mmap(void *start, size_t length, int prot, int flags, int fd, off offset);
+#endif
 int munmap(void *start, size_t length);
 
 int fork(void);
-#if defined(__MINGW32__) || defined(__MINGW64__)
+#if defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__)
 #else
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 #endif
@@ -344,6 +364,7 @@ char *wsa_strerror(int err);
 #endif
 
 #ifndef siginfo_t
+#ifndef __CYGWIN__
 typedef struct {
     int si_signo;
     int si_code;
@@ -355,6 +376,7 @@ typedef struct {
     int si_status;
     int si_band;
 } siginfo_t;
+#endif
 #endif
 
 #endif /* WIN32 */
